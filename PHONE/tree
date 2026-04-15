@@ -1,0 +1,30 @@
+app/
+ └── src/
+     └── main/
+         ├── java/com/example/memorygame/
+         │     ├── MainActivity.kt
+         │     ├── GameBridge.kt
+         │     └── DatabaseHelper.kt
+         │
+         ├── assets/
+         │     ├── memory6.html
+         │     ├── css/
+         │     │     └── jquery.mobile-1.4.5.css
+         │     │
+         │     ├── jquery/
+         │     │     ├── jquery-3.2.1.js
+         │     │     ├── jquery.mobile.custom.js
+         │     │     ├── jquery.ui.touch-punch.min.js
+         │     │     └── clock.js
+         │     │
+         │     └── images/
+         │           └── cards/
+         │               ├── back2.svg
+         │               ├── ace_of_spades.svg
+         │               ├── 2_of_clubs.svg
+         │               └── ... (ALL 52 cards)
+         │
+         └── res/
+               ├── layout/ (not used for WebView version)
+               ├── values/
+               └── drawable/ (not used for your cards)

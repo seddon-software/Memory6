@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: black;
+        }
+
+        /* Grid */
+        #cards {
+            display: grid;
+            grid-template-columns: repeat(13, 1fr);
+            gap: 0;
+            padding: 1vw;
+            padding-bottom: 20vh;
+        }
+
+        .card {
+            width: 100%;
+            aspect-ratio: 2.5 / 3.5;
+        }
+
+        .card img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            border-radius: 6px;
+            filter: drop-shadow(-5px -5px 5px #303030);
+        }
+
+        /* Controls */
+        #controls {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 18vh;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        button {
+            width: 18vw;
+            height: 10vh;
+            font-size: 18px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+        }
+
+        #name {
+            width: 25vw;
+            height: 10vh;
+            font-size: 18px;
+            border-radius: 8px;
+        }
+
+        #misses {
+            color: white;
+            font-size: 18px;
+        }
+
+        #clock {
+            color: yellow;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* Results */
+        #results {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+
+            width: auto;
+            max-width: 90vw;
+
+            background: ivory;
+            padding: 12px 16px;
+
+            font-size: 16px;
+            line-height: 1.4;
+
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.6);
+
+            visibility: hidden;
+            z-index: 2000;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="cards"></div>
+<div id="results"></div>
+
+<div id="controls">
+    <button id="getResults">Results</button>
+    <input id="name" placeholder="Name">
+    <div id="misses">0</div>
+    <div id="clock">0:00</div>
+</div>
+
+<script>
+    let card1=null, card2=null;
+    let matches=0, misses=0;
+
+    // ⏱️ TIMER
+    let startTime=null;
+    let timerRunning=false;
+    let timerInterval=null;
+
+    const cards = [
+    [2,"2_of_clubs.svg"],[2,"2_of_diamonds.svg"],[2,"2_of_hearts.svg"],[2,"2_of_spades.svg"],
+    [3,"3_of_clubs.svg"],[3,"3_of_diamonds.svg"],[3,"3_of_hearts.svg"],[3,"3_of_spades.svg"],
+    [4,"4_of_clubs.svg"],[4,"4_of_diamonds.svg"],[4,"4_of_hearts.svg"],[4,"4_of_spades.svg"],
+    [5,"5_of_clubs.svg"],[5,"5_of_diamonds.svg"],[5,"5_of_hearts.svg"],[5,"5_of_spades.svg"],
+    [6,"6_of_clubs.svg"],[6,"6_of_diamonds.svg"],[6,"6_of_hearts.svg"],[6,"6_of_spades.svg"],
+    [7,"7_of_clubs.svg"],[7,"7_of_diamonds.svg"],[7,"7_of_hearts.svg"],[7,"7_of_spades.svg"],
+    [8,"8_of_clubs.svg"],[8,"8_of_diamonds.svg"],[8,"8_of_hearts.svg"],[8,"8_of_spades.svg"],
+    [9,"9_of_clubs.svg"],[9,"9_of_diamonds.svg"],[9,"9_of_hearts.svg"],[9,"9_of_spades.svg"],
+    [10,"10_of_clubs.svg"],[10,"10_of_diamonds.svg"],[10,"10_of_hearts.svg"],[10,"10_of_spades.svg"],
+    [11,"jack_of_clubs.svg"],[11,"jack_of_diamonds.svg"],[11,"jack_of_hearts.svg"],[11,"jack_of_spades.svg"],
+    [12,"queen_of_clubs.svg"],[12,"queen_of_diamonds.svg"],[12,"queen_of_hearts.svg"],[12,"queen_of_spades.svg"],
+    [13,"king_of_clubs.svg"],[13,"king_of_diamonds.svg"],[13,"king_of_hearts.svg"],[13,"king_of_spades.svg"],
+    [14,"ace_of_clubs.svg"],[14,"ace_of_diamonds.svg"],[14,"ace_of_hearts.svg"],[14,"ace_of_spades.svg"]
+    ];
+
+    function shuffle(a){
+        for(let i=a.length-1;i>0;i--){
+            let j=Math.floor(Math.random()*(i+1));
+            [a[i],a[j]]=[a[j],a[i]];
+        }
+    }
+
+    function setupDOM(){
+        const container=document.getElementById("cards");
+        container.innerHTML="";
+        cards.forEach(c=>{
+            container.innerHTML+=`
+            <div class="card">
+                <img src="images/cards/back2.svg"
+                     data-card="${c}"
+                     data-flipped="false">
+            </div>`;
+        });
+    }
+
+    function getRank(img){
+        return parseInt(img.dataset.card.split(",")[0]);
+    }
+
+    function turnCard(img){
+        let card=img.dataset.card.split(",")[1];
+        img.src="images/cards/"+card;
+        img.dataset.flipped="true";
+    }
+
+    function resetCards(){
+        card1=null;
+        card2=null;
+    }
+
+    function updateClock(){
+        if(!timerRunning) return;
+
+        let seconds=Math.floor((Date.now()-startTime)/1000);
+        let mins=Math.floor(seconds/60);
+        let secs=seconds%60;
+        secs=secs<10?"0"+secs:secs;
+
+        document.getElementById("clock").innerText=mins+":"+secs;
+    }
+
+    function resetGame(){
+        card1=null;
+        card2=null;
+        matches=0;
+        misses=0;
+
+        document.getElementById("misses").innerText="0";
+
+        // reset timer
+        startTime=null;
+        timerRunning=false;
+        clearInterval(timerInterval);
+        document.getElementById("clock").innerText="0:00";
+
+        shuffle(cards);
+        setupDOM();
+    }
+
+    function endGame(){
+        let name=document.getElementById("name").value||"-";
+        let duration=Math.floor((Date.now()-startTime)/1000);
+
+        timerRunning=false;
+        clearInterval(timerInterval);
+
+        let response=Android.getResults(name,duration);
+        let data=JSON.parse(response);
+
+        showResults(name,data);
+
+        setTimeout(()=>{ resetGame(); },1500);
+    }
+
+    function showResults(name,data){
+        let div=document.getElementById("results");
+        let html=`<b>${name}</b><br>`;
+        data.forEach((r,i)=>{
+            html+=(i+1)+": "+r+"<br>";
+        });
+        div.innerHTML=html;
+        div.style.visibility="visible";
+    }
+
+    document.addEventListener("DOMContentLoaded",()=>{
+
+        shuffle(cards);
+        setupDOM();
+
+        document.getElementById("name").value=Android.getLastPlayer();
+
+        document.getElementById("cards").addEventListener("click",e=>{
+            if(e.target.tagName!=="IMG") return;
+
+            let img=e.target;
+
+            if(img.dataset.flipped==="true") return;
+            if(card1 && card2) return;
+
+            // start timer
+            if(!timerRunning){
+                startTime=Date.now();
+                timerRunning=true;
+                timerInterval=setInterval(updateClock,500);
+            }
+
+            if(!card1){
+                card1=img;
+                turnCard(img);
+            } else {
+                card2=img;
+                turnCard(img);
+
+                if(getRank(card1)===getRank(card2)){
+                    matches++;
+
+                    setTimeout(()=>{
+                        card1.src="images/cards/back1.svg";
+                        card2.src="images/cards/back1.svg";
+
+                        if(matches===1) endGame();
+                        resetCards();
+                    },200);
+
+                } else {
+                    misses++;
+                    document.getElementById("misses").innerText=misses;
+
+                    setTimeout(()=>{
+                        card1.src="images/cards/back2.svg";
+                        card2.src="images/cards/back2.svg";
+
+                        card1.dataset.flipped="false";
+                        card2.dataset.flipped="false";
+
+                        resetCards();
+                    },500);
+                }
+            }
+        });
+
+        document.getElementById("getResults").onclick=()=>{
+            let name=document.getElementById("name").value||"-";
+            let response=Android.getResults(name,0);
+            showResults(name,JSON.parse(response));
+        };
+    });
+</script>
+
+</body>
+</html>

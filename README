@@ -1,0 +1,13 @@
+1. To inspect the games database:
+	sqlite3 games.db
+
+In the sqlite3 tool type:
+	SELECT * from results;
+	.quit
+
+2. To control the games service:
+	cd /etc/systemd/system
+	systemctl status memory-game.service
+	systemctl stop memory-game.service
+	systemctl start memory-game.service
+

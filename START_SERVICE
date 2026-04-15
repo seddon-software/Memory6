@@ -1,0 +1,4 @@
+cd /etc/systemd/system
+sudo systemctl start memory-game.service
+sudo systemctl status memory-game.service
+

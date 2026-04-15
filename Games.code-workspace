@@ -1,0 +1,26 @@
+{
+	"folders": [
+		{
+			"path": "../../home/chris/home/workspace/python-course/Level 4/Games"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"terminal.integrated.env.linux": {
+			"GTK_PATH": null,
+			"GIO_MODULE_DIR": null
+		},
+		"git.ignoreLimitWarning": true,
+		"workbench.sideBar.location": "right",
+		"debug.terminal.clearBeforeReusing": true,
+		"notebook.find.filters": {
+			"markupSource": true,
+			"markupPreview": true,
+			"codeSource": true,
+			"codeOutput": true
+		},
+		"workbench.editor.sharedViewState": true
+	}
+}
